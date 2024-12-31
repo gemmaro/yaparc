@@ -5,9 +5,8 @@ module Yaparc
 
   module Result
     class Base
-      attr_accessor :message, :input, :value
+      attr_accessor :input, :value
       def initialize(options = {})
-        @message = options[:message] if options[:message]
         @input = options[:input] if options[:input]
         @value = options[:value]
       end

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Remove message attribute from `Yaparc::Base`.
+
 ## 0.3.0 - 2024-12-31
 
 * Added `Yaparc::VERSION` constant.
