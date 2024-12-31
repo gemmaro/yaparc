@@ -6,6 +6,8 @@
 * Rename `Yaparc::Fail` to `Yaparc::FailParser`.
 * Move `OK`, `Fail`, `Error` outside of `Result` and removed `Result` module.
 * Remove `tree` attribute of `Parsable` module.
+* Use newer keyword arguments.  This might cause troubles with Ruby version 2
+  or lower.
 
 ## 0.3.0 - 2024-12-31
 

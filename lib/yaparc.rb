@@ -309,10 +309,10 @@ module Yaparc
     include Parsable
     attr_accessor :prefix, :postfix
 
-    def initialize(parser, args = {}, &block)
+    def initialize(parser, prefix: nil, postfix: nil, &block)
       @parser = lambda do |input|
-        @prefix = args[:prefix] ? args[:prefix] : WhiteSpace.new
-        @postfix = args[:postfix] ? args[:postfix] : WhiteSpace.new
+        @prefix = prefix || WhiteSpace.new
+        @postfix = postfix || WhiteSpace.new
         if block_given?
           yield self
           Seq.new(@prefix, parser, @postfix) do |_, vs, _|
@@ -337,54 +337,14 @@ module Yaparc
     end
   end
 
-#   class Tokenizer
-#     include Parsable
-#     attr_accessor :prefix, :postfix
-
-#     def initialize(args = {})
-#       @parser = lambda do |input|
-#         @prefix = args[:prefix] ? args[:prefix] : WhiteSpace.new
-#         @postfix = args[:postfix] ? args[:postfix] : WhiteSpace.new
-#       end
-#     end
-
-#     def tokenize(&block)
-#       parser = yield
-
-#       Seq.new(@prefix, parser, @postfix) do |_, vs, _|
-#         vs
-#       end
-#     end
-#   end
-
-#   class Literalizer
-#     include Parsable
-
-#     def initialize(literal, options = {})
-#       unless case_sensitive = options[:case_sensitive]
-#         true
-#       end
-
-#       unless tokenizer = options[:tokenizer]
-#         tokenizer = Tokenizer.new
-#       end
-
-#       @parser =  lambda do |input|
-#         tokenizer.tokenize do
-#           Yaparc::String.new(literal, case_sensitive)
-#         end
-#       end
-#     end
-#   end
-
   # Refer to http://www.cs.nott.ac.uk/~gmh/monparsing.pdf, p.23
   class Identifier
     include Yaparc::Parsable
 
     IDENTIFIER_REGEX = /\A[a-zA-Z_]+[a-zA-Z0-9_]*/
 
-    def initialize(options = {})
-      identifier_regex = if regex = options[:regex]
+    def initialize(regex: nil, exclude: nil)
+      identifier_regex = if regex
                            ::Yaparc::Regex.new(regex)
                          else
                            ::Yaparc::Regex.new(IDENTIFIER_REGEX)
@@ -392,7 +352,7 @@ module Yaparc
 
       tokenizer = Tokenize.new(identifier_regex)
 
-      if exclude = options[:exclude]
+      if exclude
         @parser = lambda do |input|
           keyword_parsers = exclude.map {|keyword| Yaparc::String.new(keyword)}
 
@@ -499,19 +459,18 @@ module Yaparc
 
   class Natural
     include Parsable
-    def initialize(args = {})
+    def initialize(**args)
       @parser = lambda do |input|
-        Tokenize.new(Nat.new, args)
+        Tokenize.new(Nat.new, **args)
       end
     end
   end
 
   class Symbol
     include Parsable
-    def initialize(literal, args = {})
-      @parser = lambda do |input|
-        Literal.new(literal)
-      end
+
+    def initialize(literal)
+      @parser = proc { Literal.new(literal) }
     end
   end
 
