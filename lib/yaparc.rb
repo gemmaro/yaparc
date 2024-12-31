@@ -13,15 +13,10 @@ module Yaparc
       end
     end
 
-    class OK < Base
-    end
-
-    class Fail < Base
-    end
-
-    class Error < Base
-    end
-  end # of module Result
+    OK = Class.new(Base)
+    Fail = Class.new(Base)
+    Error = Class.new(Base)
+  end
 
   module Parsable
     attr_accessor :tree
