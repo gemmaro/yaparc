@@ -458,13 +458,14 @@ module Yaparc
   # Refer to http://www.cs.nott.ac.uk/~gmh/monparsing.pdf, p.23
   class Identifier
     include Yaparc::Parsable
-    @@identifier_regex = /\A[a-zA-Z_]+[a-zA-Z0-9_]*/
+
+    IDENTIFIER_REGEX = /\A[a-zA-Z_]+[a-zA-Z0-9_]*/
 
     def initialize(options = {})
       identifier_regex = if regex = options[:regex]
                            ::Yaparc::Regex.new(regex)
                          else
-                           ::Yaparc::Regex.new(@@identifier_regex)
+                           ::Yaparc::Regex.new(IDENTIFIER_REGEX)
                          end
 
       tokenizer = Tokenize.new(identifier_regex)
