@@ -1,0 +1,112 @@
+
+require 'lib/yaparc.rb'
+require 'test/unit'
+
+###  c.f. http://www.norbeck.nu/abc/bnf/abc20bnf.htm###
+
+module ABC
+
+#  KEYWORDS = %w{NOT AND OR ALL IN select from where EXISTS}
+
+  # abc-file ::= *(abc-tune / comment / xcommand / file-field / text-line / tex) 
+  class AbcFile
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Many.new(
+                         Yaparc::Alt.new(AbcTune.new,
+                                         Comment.new,
+                                         Xcommand.new,
+                                         FileField.new,
+                                         TextLine.new,
+                                         Tex.new))
+      end
+    end
+  end
+  
+  # file-field ::= field-area / field-book / field-composer / field-discography / field-file / field-group / field-history / field-length / field-meter / field-notes / field-origin / field-parts / field-tempo / field-rhythm / field-source / field-userdef-print / field-userdef-play / field-words / field-transcription / field-key / unused-field ; Default values for the whole file - all fields except number, title and voice
+  class FileField
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Alt.new(
+                        FieldArea.new,
+                        FieldBook.new,
+                        FieldComposer.new,
+                        FieldDiscography.new,
+                        FieldFile.new,
+                        FieldGroup.new,
+                        FieldHistory.new,
+                        FieldLength.new,
+                        FieldMeter.new,
+                        FieldNotes.new,
+                        FieldOrigin.new,
+                        FieldParts.new,
+                        FieldTempo.new,
+                        FieldRhythm.new,
+                        FieldSource.new,
+                        FieldUserdefPrint.new,
+                        FieldUserdefPlay.new,
+                        FieldWords.new,
+                        FieldTranscription.new,
+                        FieldKey.new,
+                        UnusedField.new)
+      end
+    end
+  end
+
+  # abc-tune ::= abc-header abc-music eol 
+  class AbcTune
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Seq.new(AbcHeader.new,
+                        AbcMusic.new,
+                        Eol.new)
+      end
+    end
+  end
+  
+  # abc-header ::= [field-number] title-fields *other-field field-key ; note that field-number is optional.
+  class AbcTune
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Seq.new(
+                        ZeroOne.new(FieldNumber.new)
+                        TitleFields.new,
+                        Many.new(OtherField.new),
+                        FieldKey.new)
+      end
+    end
+  end
+
+  # field-number ::= %x58.3A *WSP 1*DIGIT header-eol ; X:
+  class FieldNumber
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Seq.new(
+                        
+                              %x58.3A *WSP 1*DIGIT header-eol ; X:
+      end
+    end
+  end
+
+  ###  eol ::= CRLF / LF / CR ; only one version should occur in the whole file - win / *nix / mac line breaks
+  class Eol
+    include Yaparc::Parsable
+
+    def initialize
+      @parser = lambda do
+        Yaparc::Alt.new(Regex.new(/\n/))
+      end
+    end
+  end
+
+end

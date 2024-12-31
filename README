@@ -1,0 +1,196 @@
+= Synopsis
+
+There are several implementations of parser combinator in ruby. This is a yet another simple combinator parser libraryin ruby.
+
+= Requirements
+
+* Ruby (http://www.ruby-lang.org/)
+* RubyGem (http://rubyforge.org/projects/rubygems/)
+
+= Install
+
+ $ gem install yaparc
+
+= Usage
+
+In combinator parser, each parser is construct as a function taking input string as arguments. Larger parsers are built from smaller parsers. Although combinators are higher-order functions in ordinary functional languages, they are constructed as classes in yaparc, because Ruby has more object-oriented than functional property.
+
+All parsers has 'parse' method, each of which takes input string as its arguments except SatisfyParser. Every parser returns either Result::OK or Result::Fail as their result of parsing. An instance of Result::Fail denotes faiilure, and instance of Result::OK indicates success.
+
+== Primitive Parsers
+
+* Succeed
+* Fail
+* Item
+* Satisfy
+
+=== Succeed class
+
+The parser Succeed always succeeds with the result value, without consuming any of the input string.
+In the following example, Succeed#parse takes an input string "blah, blah, blah" and returns the singleton array [[1, "blah, blah, blah"]].
+
+    parser = Yaparc::Succeed.new(1)
+    parser.parse("blah, blah, blah")
+    => #<Yaparc::Result::OK:0xb7aaaf5c @input="blah, blah, blah", @value=1>
+
+=== Fail class
+
+The parser Fail always fails, regardless of the contents of the input string.
+
+    parser = Yaparc::Fail.new
+    parser.parse("abc")
+    => #<Yaparc::Result::Fail:0xb7aa56b0 @value=nil>
+
+=== Item class
+
+The parser Item fails if the input string is empty, and succeeds with the first character as the result value otherwise.
+
+    parser = Yaparc::Item.new
+    parser.parse("abc")
+    => #<Yaparc::Result::OK:0xb7a9fdb4 @input="bc", @value="a">
+
+=== Satisfy class
+
+The parser Satisfy recognizes a single input via predicate which determines if an arbitrary input is suitable for the predicate.
+
+    is_integer = lambda do |i|
+      begin
+        Integer(i)
+        true
+      rescue
+        false
+      end
+    end
+    parser = Yaparc::Satisfy.new(is_integer)
+    parser.parse("123")
+    => #<Yaparc::Result::OK:0xb7a8f284 @input="23", @value="1">
+
+
+== Combining Parsers
+
+* Alt
+* Seq
+* Many
+* ManyOne
+
+
+  
+=== Sequencing parser
+
+The Seq corresponds to sequencing in BNF. The following parser recognizes anything that Symbol.new('+') or Natural.new would if placed in succession.
+
+  parser = Seq.new(Symbol.new('+'), Natural.new)
+  parser.parse("+321")
+  => #<Yaparc::Result::OK:0xb7a81ae4 @input="", @value=321>
+
+if a block given to Seq, it analyses input string to construct its logical structure.
+
+  parser = Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do | plus, nat|
+    nat
+  end
+  parser.parse("+1234")
+  => #<Yaparc::Result::OK:0xb7a70a00 @input="", @value=1234>
+
+It produces a parse tree which expounds the semantic structure of the program.
+
+=== Alternation parser
+
+The parser Alt class is an alternation parser, which returns the result of the first parser to succeed, and failure if neither does.
+
+
+  parser = Yaparc::Alt.new(
+                          Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do | _, nat|
+                            nat
+                          end,
+                          Yaparc::Natural.new
+                         )
+  parser.parse("1234")
+  => #<Yaparc::Result::OK:0xb7a5a610 @input="", @value=1234>
+  parser.parse("-1234")
+  => #<Yaparc::Result::Fail:0xb7a57ba4 @value=nil>
+
+
+=== Many
+
+In Many, zero or more applications of parser are admissible.
+
+    parser = Yaparc::Many.new(Yaparc::Satisfy.new(lambda {|i| i > '0' and i < '9'}))
+    parser.parse("123abc")
+    => #<Yaparc::Result::OK:0xb7a49dc4 @input="abc", @value="123">
+
+=== ManyOne
+
+The ManyOne requires at least one successfull application of parser.
+
+
+== Tokenized parser
+
+* Identifier
+
+  Parser for identifier
+
+* Natural
+
+  Parser for natural number
+
+* Symbol
+
+
+== Regex parser
+
+    parser = Regex.new(/\A[0-9]+/)
+    result = parser.parse("1234ab")
+    assert_equal '1234',  result.value
+
+    parser = Regex.new(/([0-9]+):([a-z]+)/) do  |match1, match2|
+      [match2,match1]
+    end
+    result = parser.parse("1234:ab")
+    assert_equal ["ab", "1234"],  result.value
+
+
+== Define your own parser
+
+In order to construct parsers, you make parser class to be inherited from Yaparc::AbstractParser class.
+
+  class Identifier < Yaparc::AbstractParser
+    def initialize
+      @parser = lambda do
+        Yaparc::Tokenize.new(Yaparc::Ident.new)
+      end
+    end
+  end
+
+If you want to nest the same parser class in the parser definition, you have to choose this way.
+In the following example, note that Expr class is instantiated inside Expr#initialize method.
+
+  class Expr < Yaparc::AbstractParser
+    def initialize
+      @parser = lambda do
+        Yaparc::Alt.new(
+                              Yaparc::Seq.new(Term.new,
+                                                    Yaparc::Symbol.new('+'),
+                                                    Expr.new) do |term, _, expr|
+                                ['+', term,expr]
+                              end,
+                              Term.new
+                              )
+      end
+    end
+
+Constructing your parsers, it should be noted that left-recursion leads to non-termination of the parser.
+
+== Avoiding left-recursion
+
+ A ::= A B | C
+
+  is equivalent to
+
+ A ::= C B*
+
+
+== Tokenization
+
+When you want to tokenize input stream, use Token class.
+
+
