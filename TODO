@@ -2,6 +2,7 @@
 - [X] Fail to FailParser
 - [X] Remove raise
 - [X] Use newer keyword arguments
+- [X] Avoid accessors
 
 # Local Variables:
 # mode: org

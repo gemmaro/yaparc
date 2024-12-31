@@ -305,7 +305,7 @@ module Yaparc
   class Tokenize
     include Parsable
 
-    attr_accessor :prefix, :postfix
+    attr_writer :prefix, :postfix
 
     def initialize(parser, prefix: nil, postfix: nil, &block)
       @parser = lambda do |input|

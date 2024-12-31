@@ -8,6 +8,7 @@
 * Remove `tree` attribute of `Parsable` module.
 * Use newer keyword arguments.  This might cause troubles with Ruby version 2
   or lower.
+* Limit `Tokenize`'s `prefix` and `postfix` write only.
 
 ## 0.3.0 - 2024-12-31
 
