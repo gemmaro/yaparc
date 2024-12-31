@@ -6,9 +6,9 @@ module Yaparc
   module Result
     class Base
       attr_accessor :input, :value
-      def initialize(options = {})
-        @input = options[:input] if options[:input]
-        @value = options[:value]
+      def initialize(input:, value: nil)
+        @input = input
+        @value = value
       end
     end
 
