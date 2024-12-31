@@ -1,0 +1,126 @@
+ontology ::= 'Ontology(' [ ontologyID ] { directive } ')'
+
+directive ::= 'Annotation(' ontologyPropertyID ontologyID ')'
+            | 'Annotation(' annotationPropertyID URIreference ')'
+            | 'Annotation(' annotationPropertyID dataLiteral ')'
+            | 'Annotation(' annotationPropertyID individual ')'
+            | axiom
+            | fact
+
+datatypeID                 ::= URIreference
+classID                    ::= URIreference
+individualID               ::= URIreference
+ontologyID                 ::= URIreference
+datavaluedPropertyID       ::= URIreference
+individualvaluedPropertyID ::= URIreference
+annotationPropertyID       ::= URIreference
+ontologyPropertyID         ::= URIreference
+
+fact                       ::= individual
+
+axiom ::= 'Class(' classID  ['Deprecated'] modality { annotation } { description } ')'
+        | 'EnumeratedClass(' classID ['Deprecated'] { annotation } { individualID } ')'
+        | 'DisjointClasses(' description description { description } ')'
+        | 'EquivalentClasses(' description { description } ')'
+        | 'SubClassOf(' description description ')'
+        | 'Datatype(' datatypeID ['Deprecated']  { annotation } )'
+        | 'DatatypeProperty('
+          datavaluedPropertyID
+          ['Deprecated']
+          { annotation }
+          { 'super(' datavaluedPropertyID ')'}
+          ['Functional']
+          { 'domain(' description ')' }
+          { 'range(' dataRange ')' }
+          ')'
+        | 'ObjectProperty('
+          individualvaluedPropertyID
+          ['Deprecated']
+          { annotation }
+          { 'super(' individualvaluedPropertyID ')' }
+          [ 'inverseOf(' individualvaluedPropertyID ')' ]
+          [ 'Symmetric' ]
+          [   'Functional'
+            | 'InverseFunctional'
+            | 'Functional' 'InverseFunctional'
+            | 'Transitive' ]
+          { 'domain(' description ')' }
+          { 'range(' description ')' }
+          ')'
+        | 'AnnotationProperty(' annotationPropertyID { annotation } ')'
+        | 'OntologyProperty(' ontologyPropertyID { annotation } ')'
+        | 'EquivalentProperties('
+          datavaluedPropertyID
+          datavaluedPropertyID
+          { datavaluedPropertyID }
+          ')'
+        | 'SubPropertyOf(' datavaluedPropertyID  datavaluedPropertyID ')'
+        | 'EquivalentProperties('
+          individualvaluedPropertyID
+          individualvaluedPropertyID
+          { individualvaluedPropertyID }
+          ')'
+        | 'SubPropertyOf(' individualvaluedPropertyID  individualvaluedPropertyID ')'
+
+individual ::= 'Individual('
+               [ individualID ]
+               { annotation }
+               { 'type(' type ')' }
+               { value }
+               ')'
+
+value ::= 'value(' individualvaluedPropertyID individualID ')'
+        | 'value(' individualvaluedPropertyID  individual ')'
+        | 'value(' datavaluedPropertyID  dataLiteral ')'
+
+annotation ::= 'annotation(' annotationPropertyID URIreference ')'
+             | 'annotation(' annotationPropertyID dataLiteral ')'
+             | 'annotation(' annotationPropertyID individual ')'
+
+type ::= description
+
+description ::= classID
+              | restriction
+              | 'unionOf(' { description } ')'
+              | 'intersectionOf(' { description } ')'
+              | 'complementOf(' description ')'
+              | 'oneOf(' { individualID } ')'
+
+restriction ::= 'restriction('
+                datavaluedPropertyID
+                dataRestrictionComponent
+                { dataRestrictionComponent }
+                ')'
+              | 'restriction('
+                individualvaluedPropertyID
+                individualRestrictionComponent
+                { individualRestrictionComponent }
+                ')'
+
+individualRestrictionComponent ::= 'allValuesFrom(' description ')'
+                                 | 'someValuesFrom(' description ')'
+                                 | 'value(' individualID ')'
+                                 | cardinality
+
+modality ::= 'complete' | 'partial'
+
+dataRestrictionComponent ::= 'allValuesFrom(' dataRange ')'
+                           | 'someValuesFrom(' dataRange ')'
+                           | 'value(' dataLiteral ')'
+                           | cardinality
+
+cardinality ::= 'minCardinality(' non-negative-integer ')'
+              | 'maxCardinality(' non-negative-integer ')'
+              | 'cardinality(' non-negative-integer ')'
+
+dataRange ::= datatypeID
+            | 'rdfs:Literal'
+            | 'oneOf(' { dataLiteral } ')'
+
+;; http://www.w3.org/TR/rdf-concepts/#dfn-plain-literal
+
+dataLiteral  ::= typedLiteral | plainLiteral
+typedLiteral ::= lexicalForm^^URIreference
+plainLiteral ::= lexicalForm | lexicalForm@languageTag
+lexicalForm  ::= /"[^"]*"/ ; as in RDF, a unicode string in normal form C
+languageTag  ::= /[a-z-]+/ ; as in RDF, an XML language tag
