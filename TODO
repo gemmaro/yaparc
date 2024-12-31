@@ -3,6 +3,8 @@
 - [X] Remove raise
 - [X] Use newer keyword arguments
 - [X] Avoid accessors
+- [X] Split modules into files
+- [ ] Split BNF files
 
 # Local Variables:
 # mode: org
