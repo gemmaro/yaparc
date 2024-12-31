@@ -1,4 +1,6 @@
 module Yaparc
+  VERSION = "0.3.0"
+
   module Result
     class Base
       attr_accessor :message, :input, :value
