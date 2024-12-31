@@ -1,7 +1,6 @@
-require 'lib/yaparc.rb'
-require 'test/unit'
+require 'test_helper'
 
-###  c.f. http://www.norbeck.nu/abc/bnf/abc20bnf.htm###
+# c.f. http://www.norbeck.nu/abc/bnf/abc20bnf.htm###
 # http://web.archive.org/web/20120814155205/http://www.norbeck.nu:80/abc/bnf/abc20bnf.htm
 
 module ABC
@@ -77,7 +76,7 @@ module ABC
     def initialize
       @parser = lambda do
         Yaparc::Seq.new(
-                        ZeroOne.new(FieldNumber.new)
+                        ZeroOne.new(FieldNumber.new),
                         TitleFields.new,
                         Many.new(OtherField.new),
                         FieldKey.new)
@@ -91,9 +90,7 @@ module ABC
 
     def initialize
       @parser = lambda do
-        Yaparc::Seq.new(
-                        
-                              %x58.3A *WSP 1*DIGIT header-eol ; X:
+        # TODO
       end
     end
   end
@@ -108,5 +105,4 @@ module ABC
       end
     end
   end
-
 end
