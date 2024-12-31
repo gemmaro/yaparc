@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Yaparc
-  VERSION = "0.3.0"
+  VERSION = '0.3.0'
 
   begin
     base = Class.new do
@@ -19,12 +19,12 @@ module Yaparc
   end
 
   module Parsable
-    IS_LOWER      = lambda {|c| c >= 'a' and c <= 'z'}
-    IS_ALPHANUM   = lambda {|c| (c >= 'a' and c <= 'z') or (c >= '0' and c <= '9')}
-    IS_DIGIT      = lambda {|i| i >= '0' and i <= '9'}
-    IS_SPACE      = lambda {|i| i == ' '}
-    IS_WHITESPACE = lambda {|i| i == ' ' or i == "\n" or i == "\t"}
-    IS_CR         = lambda {|i| i == "\n"}
+    IS_LOWER      = ->(c) { c >= 'a' and c <= 'z' }
+    IS_ALPHANUM   = ->(c) { (c >= 'a' and c <= 'z') or (c >= '0' and c <= '9') }
+    IS_DIGIT      = ->(i) { i >= '0' and i <= '9' }
+    IS_SPACE      = ->(i) { i == ' ' }
+    IS_WHITESPACE = ->(i) { [' ', "\n", "\t"].include?(i) }
+    IS_CR         = ->(i) { i == "\n" }
 
     def parse(input)
       result = @parser.call(input)
@@ -43,7 +43,7 @@ module Yaparc
     attr_reader :remaining
 
     def initialize(value, remaining = nil)
-      @parser = lambda { |input| OK.new(value:, input:) }
+      @parser = ->(input) { OK.new(value:, input:) }
       @remaining = remaining
     end
   end
@@ -52,7 +52,7 @@ module Yaparc
     include Parsable
 
     def initialize
-      @parser = lambda { |input| Fail.new(input:) }
+      @parser = ->(input) { Fail.new(input:) }
     end
   end
 
@@ -77,9 +77,9 @@ module Yaparc
       @parser = lambda do |input|
         case (result = parser.parse(input))
         in Fail
-          OK.new(:value => identity, input:)
+          OK.new(value: identity, input:)
         in Error
-          Error.new(:value => result.value, :input => result.input)
+          Error.new(value: result.value, input: result.input)
         in OK
           result
         end
@@ -117,11 +117,11 @@ module Yaparc
   class NoFail
     include Parsable
 
-    def initialize(parser, &block)
+    def initialize(parser)
       @parser = lambda do |input|
         result = parser.parse(input)
         if result.instance_of?(Fail)
-          Error.new(:value => result.value, :input => result.input)
+          Error.new(value: result.value, input: result.input)
         else
           Succeed.new(result.value)
         end
@@ -132,30 +132,28 @@ module Yaparc
   class Seq
     include Parsable
 
-    def initialize(*parsers, &block)
+    def initialize(*parsers)
       @parser = lambda do |input|
         args = []
-        initial_result = OK.new(:input => input)
+        initial_result = OK.new(input:)
         final_result = parsers.inject(initial_result) do |subsequent, parser|
           result = parser.parse(subsequent.input)
-          if result.instance_of?(Fail)
-            break Fail.new(:input => subsequent.input)
-          else
-            args << result.value
-            result
-          end
+          break Fail.new(input: subsequent.input) if result.instance_of?(Fail)
+
+          args << result.value
+          result
         end
 
         case final_result
         in Fail
-          Fail.new(:input => final_result.input)
+          Fail.new(input: final_result.input)
         in OK
           final_value = if block_given?
                           yield(*args)
                         else
                           args.last
                         end
-          OK.new(:value => final_value, :input => final_result.input)
+          OK.new(value: final_value, input: final_result.input)
         end
       end
     end
@@ -165,7 +163,7 @@ module Yaparc
     include Parsable
     def initialize(*parsers)
       @parser = lambda do |input|
-        final_result = Fail.new(:input => input)
+        final_result = Fail.new(input:)
         parsers.each do |parser|
           case result = parser.parse(input)
           in Fail
@@ -182,7 +180,7 @@ module Yaparc
   class Apply
     include Parsable
 
-    def initialize(parser, &block)
+    def initialize(parser)
       @parser = lambda do |input|
         result = parser.parse(input)
         if result.instance_of?(OK)
@@ -198,14 +196,14 @@ module Yaparc
     include Parsable
 
     def initialize(string, case_sensitive = true)
-      @parser = lambda do |input|
+      @parser = lambda do |_input|
         result = Item.new.parse(string)
         if result.instance_of?(OK)
           Seq.new(
-                  Char.new(result.value, case_sensitive),
-                  Yaparc::String.new(result.input, case_sensitive),
-                  Succeed.new(result.value + result.input)
-                  ) do |_, _, succeed_result|
+            Char.new(result.value, case_sensitive),
+            Yaparc::String.new(result.input, case_sensitive),
+            Succeed.new(result.value + result.input)
+          ) do |_, _, succeed_result|
             succeed_result
           end
         else
@@ -218,14 +216,14 @@ module Yaparc
   class Regex
     include Parsable
 
-    def initialize(regex, &block)
+    def initialize(regex)
       @regex = regex
       @parser = lambda do |input|
         if match = Regexp.new(regex).match(input)
           if block_given?
             Succeed.new(yield(*match.to_a[1..])).parse(match.post_match)
           else
-            OK.new(:value => match[0], :input => match.post_match)
+            OK.new(value: match[0], input: match.post_match)
           end
         else
           Fail.new(input:)
@@ -250,7 +248,7 @@ module Yaparc
     include Parsable
 
     def initialize(parser, identity = [])
-      @parser = lambda do |input|
+      @parser = lambda do |_input|
         Seq.new(parser, Many.new(parser, identity)) do |head, tail|
           case head
           when ::String, ::Array, ::Integer
@@ -272,14 +270,14 @@ module Yaparc
   class Space
     include Parsable
     def initialize
-      @parser = proc { Regex.new(/\A[ ]*/) }
+      @parser = proc { Regex.new(/\A */) }
     end
   end
 
   class CR
     include Parsable
     def initialize
-      @parser = proc { Regex.new(/\A[ \t]+[\n][ \t\n]+/) }
+      @parser = proc { Regex.new(/\A[ \t]+\n[ \t\n]+/) }
     end
   end
 
@@ -296,8 +294,8 @@ module Yaparc
 
     attr_writer :prefix, :postfix
 
-    def initialize(parser, prefix: nil, postfix: nil, &block)
-      @parser = lambda do |input|
+    def initialize(parser, prefix: nil, postfix: nil)
+      @parser = lambda do |_input|
         @prefix = prefix || WhiteSpace.new
         @postfix = postfix || WhiteSpace.new
         block_given? and yield self
@@ -323,11 +321,7 @@ module Yaparc
     IDENTIFIER_REGEX = /\A[a-zA-Z_]+[a-zA-Z0-9_]*/
 
     def initialize(regex: nil, exclude: nil)
-      identifier_regex = if regex
-                           ::Yaparc::Regex.new(regex)
-                         else
-                           ::Yaparc::Regex.new(IDENTIFIER_REGEX)
-                         end
+      identifier_regex = ::Yaparc::Regex.new(regex || IDENTIFIER_REGEX)
 
       tokenizer = Tokenize.new(identifier_regex)
 
@@ -337,7 +331,7 @@ module Yaparc
       end
 
       @parser = lambda do |input|
-        keyword_parsers = exclude.map {|keyword| Yaparc::String.new(keyword)}
+        keyword_parsers = exclude.map { |keyword| Yaparc::String.new(keyword) }
 
         case result = Yaparc::Alt.new(*keyword_parsers).parse(input)
         when Yaparc::OK
@@ -353,11 +347,11 @@ module Yaparc
     include Parsable
 
     def initialize(char, case_sensitive = true)
-      if case_sensitive
-        equal_char = lambda {|i| i == char}
-      else # in case of case-insentive
-        equal_char = lambda {|i| i.casecmp(char) == 0}
-      end
+      equal_char = if case_sensitive
+                     ->(i) { i == char }
+                   else # in case of case-insentive
+                     ->(i) { i.casecmp(char) == 0 }
+                   end
       @parser = proc { Satisfy.new(equal_char) }
     end
   end
@@ -368,9 +362,9 @@ module Yaparc
     def initialize
       @parser = proc do
         Seq.new(
-                Satisfy.new(IS_LOWER),
-                Many.new(Satisfy.new(IS_ALPHANUM),"")
-                ) do |head, tail|
+          Satisfy.new(IS_LOWER),
+          Many.new(Satisfy.new(IS_ALPHANUM), '')
+        ) do |head, tail|
           head + tail
         end
       end
@@ -389,7 +383,7 @@ module Yaparc
     include Parsable
 
     def initialize
-      @parser = proc { Seq.new(ManyOne.new(Digit.new,'')) { |vs| vs.to_i } }
+      @parser = proc { Seq.new(ManyOne.new(Digit.new, '')) { |vs| vs.to_i } }
     end
   end
 
@@ -413,13 +407,13 @@ module Yaparc
   class AbstractParser
     include Parsable
 
-    def parse(input, &block)
+    def parse(input)
       tree = @parser.call.parse(input)
-      if block_given?
-        @tree = yield tree
-      else
-        @tree = tree
-      end
+      @tree = if block_given?
+                yield tree
+              else
+                tree
+              end
     end
   end
 end

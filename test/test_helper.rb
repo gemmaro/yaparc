@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-require "yaparc"
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+require 'yaparc'
 
-require "test-unit"
+require 'test-unit'

@@ -3,20 +3,19 @@
 require 'test_helper'
 
 module Calc
-
   class Expr
     include Yaparc::Parsable
-    
+
     def initialize
-      @parser = lambda do |input|
+      @parser = lambda do |_input|
         Yaparc::Alt.new(
-                        Yaparc::Seq.new(Term.new,
-                                        Yaparc::Symbol.new('+'),
-                                        Expr.new) do |term, _, expr|
-                          ['+', term,expr]
-                        end,
-                        Term.new
-                        )
+          Yaparc::Seq.new(Term.new,
+                          Yaparc::Symbol.new('+'),
+                          Expr.new) do |term, _, expr|
+            ['+', term, expr]
+          end,
+          Term.new
+        )
       end
     end
 
@@ -49,14 +48,15 @@ module Calc
     include Yaparc::Parsable
 
     def initialize
-      @parser = lambda do |input|
+      @parser = lambda do |_input|
         Yaparc::Alt.new(
-                        Yaparc::Seq.new(Factor.new,
-                                        Yaparc::Symbol.new('*'),
-                                        Term.new) do |factor, _, term|
-                          ['*', factor,term]
-                        end,
-                        Factor.new)
+          Yaparc::Seq.new(Factor.new,
+                          Yaparc::Symbol.new('*'),
+                          Term.new) do |factor, _, term|
+            ['*', factor, term]
+          end,
+          Factor.new
+        )
       end
     end
   end
@@ -65,16 +65,17 @@ module Calc
     include Yaparc::Parsable
 
     def initialize
-      @parser = lambda do |input|
+      @parser = lambda do |_input|
         Yaparc::Alt.new(
-                        Yaparc::Seq.new(
-                                        Yaparc::Symbol.new('('),
-                                        Expr.new,
-                                        Yaparc::Symbol.new(')')
-                                        ) do |_,expr, _|
-                          expr
-                        end,
-                        Yaparc::Natural.new)
+          Yaparc::Seq.new(
+            Yaparc::Symbol.new('('),
+            Expr.new,
+            Yaparc::Symbol.new(')')
+          ) do |_, expr, _|
+            expr
+          end,
+          Yaparc::Natural.new
+        )
       end
     end
   end
@@ -89,25 +90,25 @@ class YaparcCalcTest < Test::Unit::TestCase
   end
 
   def test_expr
-    result = @expr.parse("1 + 2 ")
+    result = @expr.parse('1 + 2 ')
     assert_instance_of OK,  result
-    assert_equal ["+", 1, 2],  result.value
-    assert_equal "",  result.input
-    assert_equal 3, @expr.evaluate("1 + 2 ")
-    assert_equal 9, @expr.evaluate("(1 + 2) * 3 ")
+    assert_equal ['+', 1, 2], result.value
+    assert_equal '', result.input
+    assert_equal 3, @expr.evaluate('1 + 2 ')
+    assert_equal 9, @expr.evaluate('(1 + 2) * 3 ')
   end
 
   def test_factor
-    result = @factor.parse("1")
-    assert_equal 1,  result.value
-    assert_equal "",  result.input
+    result = @factor.parse('1')
+    assert_equal 1, result.value
+    assert_equal '', result.input
 
-    result = @factor.parse("( 1 )")
-    assert_equal 1,  result.value
-    assert_equal "",  result.input
+    result = @factor.parse('( 1 )')
+    assert_equal 1, result.value
+    assert_equal '', result.input
 
-    result = @factor.parse("( 312 )")
+    result = @factor.parse('( 312 )')
     assert_equal 312,  result.value
-    assert_equal "",  result.input
+    assert_equal '', result.input
   end
 end
