@@ -14,3 +14,8 @@ require "rubocop/rake_task"
 RuboCop::RakeTask.new
 
 task default: %i[test rubocop]
+
+desc 'Generate signatures'
+task :gensig do
+  sh 'typeprof', '-o', 'sig/yaparc.gen.rbs', 'sig/yaparc.rbs', *Dir['lib/**/*.rb']
+end
