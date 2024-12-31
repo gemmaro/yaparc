@@ -1,58 +1,202 @@
 # TypeProf 0.21.3
 
 # Classes
+class Object
+  @parser: bot
+end
+
 module Yaparc
   VERSION: String
+  OK: Class
+  Fail: Class
+  Error: Class
+  @input: untyped
+  @value: nil
 
-  module Result
-    class Base
-      attr_accessor message: nil
-      attr_accessor input: nil
-      attr_accessor value: nil
-      def initialize: (?Hash[untyped, untyped] options) -> void
-    end
-
-    class OK < Base
-    end
-
-    class Fail < Base
-    end
-
-    class Error < Base
-    end
-  end
+  def initialize: (input: untyped, ?value: nil) -> void
 
   module Parsable
-    IS_LOWER: Proc
-    IS_ALPHANUM: Proc
-    IS_DIGIT: Proc
-    IS_SPACE: Proc
-    IS_WHITESPACE: Proc
-    IS_CR: Proc
+    IS_LOWER: ^(untyped) -> untyped
+    IS_ALPHANUM: ^(untyped) -> untyped
+    IS_DIGIT: ^(untyped) -> untyped
+    IS_SPACE: ^(untyped) -> untyped
+    IS_WHITESPACE: ^(untyped) -> bool
+    IS_CR: ^(untyped) -> untyped
     @parser: bot
 
-    attr_accessor tree: untyped
-    def parse: (nil input) -> untyped
+    def parse: (nil input) -> (Alt | Regex | Satisfy)
   end
 
-  class Succeed
+  class Alt
     include Parsable
     @parser: Proc
 
-    attr_reader remaining: nil
-    def initialize: (untyped value, ?nil remaining) -> void
+    def initialize: (*ManyOne | Succeed parsers) -> void
   end
 
-  class Fail
+  class Apply
+    include Parsable
+    @parser: Proc
+
+    def initialize: (untyped parser) -> void
+  end
+
+  class Char
+    include Parsable
+    @parser: ^-> Satisfy
+
+    def initialize: (untyped char, ?true case_sensitive) -> void
+  end
+
+  class CR
+    include Parsable
+    @parser: ^-> Regex
+
+    def initialize: -> void
+  end
+
+  class Digit
+    include Parsable
+    @parser: ^-> Satisfy
+
+    def initialize: -> void
+  end
+
+  class FailParser
+    include Parsable
+    @parser: ^(nil) -> untyped
+
+    def initialize: -> void
+  end
+
+  class Ident
+    include Parsable
+    @parser: ^-> Seq
+
+    def initialize: -> void
+  end
+
+  class Identifier
+    IDENTIFIER_REGEX: Regexp
+    include Parsable
+    @parser: Proc | ^-> Tokenize
+
+    def initialize: (?regex: nil, ?exclude: nil) -> void
+  end
+
+  class Item
     include Parsable
     @parser: Proc
 
     def initialize: -> void
   end
 
-  class Item
+  class Literal
+    include Parsable
+    @parser: ^-> Tokenize
+
+    def initialize: (untyped literal, ?true case_sensitive) -> void
+  end
+
+  class Many
+    include Parsable
+    @parser: ^-> Alt
+
+    def initialize: (Satisfy parser, ?Array[untyped] | String identity) -> void
+  end
+
+  class ManyOne
     include Parsable
     @parser: Proc
+
+    def initialize: (Digit parser, ?Array[untyped] | String identity) -> void
+  end
+
+  class Nat
+    include Parsable
+    @parser: ^-> Seq
+
+    def initialize: -> void
+  end
+
+  class Natural
+    include Parsable
+    @parser: ^-> Tokenize
+
+    def initialize: (**untyped) -> void
+  end
+
+  class NoFail
+    include Parsable
+    @parser: Proc
+
+    def initialize: (untyped parser) -> void
+  end
+
+  class Regex
+    include Parsable
+    @regex: Regexp
+    @parser: Proc
+
+    def initialize: (Regexp regex) -> void
+  end
+
+  class Satisfy
+    include Parsable
+    @parser: Proc
+
+    def initialize: (^(untyped) -> untyped predicate) -> void
+    def parse: (nil input) -> untyped
+  end
+
+  class Seq
+    include Parsable
+    @parser: Proc
+
+    def initialize: (*Char | Many | ManyOne | Regex | Satisfy | String | Succeed | WhiteSpace parsers) { (*untyped) -> Array[untyped] } -> void
+  end
+
+  class Space
+    include Parsable
+    @parser: ^-> Regex
+
+    def initialize: -> void
+  end
+
+  class String
+    include Parsable
+    @parser: Proc
+
+    def initialize: (untyped string, ?true case_sensitive) -> void
+  end
+
+  class Succeed
+    include Parsable
+    @parser: ^(nil) -> untyped
+
+    attr_reader remaining: nil
+    def initialize: (Alt | Array[untyped] | Regex | Satisfy value, ?nil remaining) -> void
+  end
+
+  class Symbol
+    include Parsable
+    @parser: ^-> Literal
+
+    def initialize: (untyped literal) -> void
+  end
+
+  class Tokenize
+    include Parsable
+    @parser: Proc
+
+    attr_writer prefix: WhiteSpace
+    attr_writer postfix: WhiteSpace
+    def initialize: (Regex | String parser, ?prefix: nil, ?postfix: nil) -> void
+  end
+
+  class WhiteSpace
+    include Parsable
+    @parser: ^-> Regex
 
     def initialize: -> void
   end
@@ -64,156 +208,9 @@ module Yaparc
     def initialize: (untyped parser, ?Array[untyped] identity) -> void
   end
 
-  class Satisfy
-    include Parsable
-    @parser: Proc
-
-    def initialize: (Proc predicate) -> void
-    def parse: (untyped input) -> untyped
-  end
-
-  class NoFail
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped parser) -> void
-  end
-
-  class Seq
-    include Parsable
-    @parser: Proc
-
-    def initialize: (*Char | String | Succeed | WhiteSpace parsers) ?{ (*untyped) -> untyped } -> void
-  end
-
-  class Alt
-    include Parsable
-    @parser: Proc
-
-    def initialize: (*untyped parsers) -> void
-  end
-
-  class Apply
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped parser) -> void
-  end
-
-  class String
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped string, ?true case_sensitive) -> void
-  end
-
-  class Regex
-    include Parsable
-    @regex: Regexp
-    @parser: Proc
-
-    def initialize: (Regexp regex) -> void
-  end
-
-  class Many
-    include Parsable
-
-    def initialize: (Satisfy parser, ?Array[untyped] | String identity) -> void
-  end
-
-  class ManyOne
-    include Parsable
-
-    def initialize: (Digit parser, ?Array[untyped] | String identity) -> void
-  end
-
-  class Space
-    include Parsable
-    @parser: Proc
-
-    def initialize: -> void
-  end
-
-  class CR
-    include Parsable
-    @parser: Proc
-
-    def initialize: -> void
-  end
-
-  class WhiteSpace
-    include Parsable
-    @parser: Proc
-
-    def initialize: -> void
-  end
-
-  class Tokenize
-    include Parsable
-    @parser: Proc
-
-    attr_accessor prefix: WhiteSpace
-    attr_accessor postfix: WhiteSpace
-    def initialize: (Regex | String parser, ?Hash[untyped, untyped] args) -> void
-  end
-
-  class Literal
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped literal, ?true case_sensitive) -> void
-  end
-
-  class Identifier
-    IDENTIFIER_REGEX: Regexp
-    include Parsable
-    @parser: Proc
-
-    def initialize: (?Hash[untyped, untyped] options) -> void
-  end
-
-  class Char
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped char, ?true case_sensitive) -> void
-  end
-
-  class Ident
-    include Parsable
-
-    def initialize: -> void
-  end
-
-  class Digit
-    include Parsable
-    @parser: Proc
-
-    def initialize: -> void
-  end
-
-  class Nat
-    include Parsable
-
-    def initialize: -> void
-  end
-
-  class Natural
-    include Parsable
-
-    def initialize: (?Hash[untyped, untyped] args) -> void
-  end
-
-  class Symbol
-    include Parsable
-    @parser: Proc
-
-    def initialize: (untyped literal, ?Hash[untyped, untyped] _args) -> void
-  end
-
   class AbstractParser
     include Parsable
-    @parser: bot
+    @tree: untyped
 
     def parse: (untyped input) -> untyped
   end
