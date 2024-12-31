@@ -5,7 +5,8 @@ module Yaparc
 
   module Result
     class Base
-      attr_accessor :input, :value
+      attr :input, :value
+
       def initialize(input:, value: nil)
         @input = input
         @value = value
