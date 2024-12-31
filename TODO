@@ -4,7 +4,7 @@
 - [X] Use newer keyword arguments
 - [X] Avoid accessors
 - [X] Split modules into files
-- [ ] Split BNF files
+- [X] Split BNF files
 
 # Local Variables:
 # mode: org
