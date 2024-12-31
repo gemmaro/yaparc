@@ -39,35 +39,32 @@ module Yaparc
 
   class Succeed
     include Parsable
+
     attr_reader :remaining
 
     def initialize(value, remaining = nil)
-      @parser = lambda do |input|
-        OK.new(:value => value, :input => input)
-      end
+      @parser = lambda { |input| OK.new(value:, input:) }
       @remaining = remaining
     end
   end
 
   class FailParser
     include Parsable
+
     def initialize
-      @parser = lambda do |input|
-        Fail.new(:input => input)
-      end
+      @parser = lambda { |input| Fail.new(input:) }
     end
   end
-
 
   class Item
     include Parsable
 
     def initialize
       @parser = lambda do |input|
-        if input.nil? or input.empty?
-          Fail.new(:input => input)
+        if input.nil? || input.empty?
+          Fail.new(input:)
         else
-          OK.new(:value => input[0..0],:input => input[1..input.length])
+          OK.new(value: input[0], input: input[1..])
         end
       end
     end
@@ -78,10 +75,9 @@ module Yaparc
 
     def initialize(parser, identity = [])
       @parser = lambda do |input|
-        case result = parser.parse(input)
+        case (result = parser.parse(input))
         in Fail
-          OK.new(:value => identity, :input => input)
-          #          Succeed.new(identity)
+          OK.new(:value => identity, input:)
         in Error
           Error.new(:value => result.value, :input => result.input)
         in OK
@@ -97,7 +93,8 @@ module Yaparc
     def initialize(predicate)
       @parser = lambda do |input|
         result = Item.new.parse(input)
-        if result.instance_of?(OK) and predicate.call(result.value)
+
+        if result.instance_of?(OK) && predicate.call(result.value)
           Succeed.new(result.value, result.input)
         else
           FailParser.new
@@ -307,6 +304,7 @@ module Yaparc
 
   class Tokenize
     include Parsable
+
     attr_accessor :prefix, :postfix
 
     def initialize(parser, prefix: nil, postfix: nil, &block)
