@@ -19,16 +19,14 @@ module Yaparc
   end
 
   module Parsable
-    attr_accessor :tree
-
-    IS_LOWER = lambda {|c| c >= 'a' and c <= 'z'}
-    IS_ALPHANUM = lambda {|c| (c >= 'a' and c <= 'z') or (c >= '0' and c <= '9')}
-    IS_DIGIT = lambda {|i| i >= '0' and i <= '9'}
-    IS_SPACE = lambda {|i| i == ' '}
+    IS_LOWER      = lambda {|c| c >= 'a' and c <= 'z'}
+    IS_ALPHANUM   = lambda {|c| (c >= 'a' and c <= 'z') or (c >= '0' and c <= '9')}
+    IS_DIGIT      = lambda {|i| i >= '0' and i <= '9'}
+    IS_SPACE      = lambda {|i| i == ' '}
     IS_WHITESPACE = lambda {|i| i == ' ' or i == "\n" or i == "\t"}
-    IS_CR = lambda {|i| i == "\n"}
+    IS_CR         = lambda {|i| i == "\n"}
 
-    def parse(input) #, &block)
+    def parse(input)
       result = @parser.call(input)
 
       if result.respond_to?(:parse)
@@ -37,8 +35,7 @@ module Yaparc
         result
       end
     end
-
-  end # of Module Parsable
+  end
 
   class Succeed
     include Parsable
