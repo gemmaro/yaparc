@@ -1,0 +1,21 @@
+;; c.f. http://www11.plala.or.jp/sotsuken/db/sql.html
+
+query_body        := select_expression from_expression where_expression
+select_expression := 'select' term_sequence
+term_sequence     := term[,term_sequence]*
+from_expression   := 'from' path_expression[, path_expression]*
+path_expression   := '/' term [path_expression]*
+where_expression  :=
+                   | search_cond
+
+search_cond       := term op term
+                   | ( NOT search_cond )
+                   | ( search_cond AND search_cond )
+                   | ( search_cond OR search_cond )
+                   | EXISTS ( query_body )
+                   | term op ANY ( query_body )
+                   | term op ALL ( query_body )
+                   | term IN ( query_body )
+
+term              := any_characters
+op                := <> | = | <  | > | <= | >=
