@@ -1,0 +1,25 @@
+<prog>         ::= <clause> [ <clause> ]*
+<clause>       ::= <fact> | <rule> | <query>
+
+<fact>         ::= <compoundterm> .
+<compoundterm> ::= <atom> [ ( <arglist> ) ]*
+
+<rule>         ::= <head> :- <body> .
+<query>        ::= ?- <body> .
+<head>         ::= <compoundterm>
+<body>         ::= <goal> [, <goal>]*
+<goal>         ::= <compoundterm> | !
+
+<arglist>      ::= <arg>[, <arg>]*
+<arg>          ::= <atom> | <var> | <list>
+
+<atom>         ::= /[a-zA-Z][a-zA-Z0-9]*/
+                 | '/[a-zA-Z0-9]+/'
+
+<var>          ::= ?/[a-zA-Z0-9]+/
+
+<list>         ::= <leftbracket> <rightbracket>
+<list>         ::= <leftbracket> <listelems> <rightbracket>
+<listelems>    ::= <arglist>
+<listelems>    ::= <arglist> <barsymbol> <list>
+<listelems>    ::= <arglist> <barsymbol> <var>
