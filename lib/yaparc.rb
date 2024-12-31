@@ -112,8 +112,9 @@ module Yaparc
     end
   end
 
+  # hutton92:_higher_order_funct_parsin,p.19
+  # https://www.cambridge.org/core/journals/journal-of-functional-programming/article/higherorder-functions-for-parsing/0490F2C8511F7625F9FC15BFFEDBB0AA
   class NoFail
-    # hutton92:_higher_order_funct_parsin,p.19
     include Parsable
 
     def initialize(parser, &block)
