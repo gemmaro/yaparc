@@ -1,57 +1,68 @@
-= Synopsis
+= yaparc
 
-There are several implementations of parser combinator in ruby. This is a yet another simple combinator parser libraryin ruby.
+== Synopsis
 
-= Requirements
+There are several implementations of parser combinator in Ruby.  This is an
+yet another simple combinator parser library in Ruby.
 
-* Ruby (http://www.ruby-lang.org/)
-* RubyGem (http://rubyforge.org/projects/rubygems/)
+== Install
 
-= Install
+  gem install yaparc
 
- $ gem install yaparc
+== Usage
 
-= Usage
+In combinator parser, each parser is construct as a function taking input
+string as arguments.  Larger parsers are built from smaller parsers.  Although
+combinators are higher-order functions in ordinary functional languages, they
+are constructed as classes in yaparc, because Ruby has more object-oriented
+than functional property.
 
-In combinator parser, each parser is construct as a function taking input string as arguments. Larger parsers are built from smaller parsers. Although combinators are higher-order functions in ordinary functional languages, they are constructed as classes in yaparc, because Ruby has more object-oriented than functional property.
+All parsers has +parse+ method, each of which takes input string as its
+arguments except Yaparc::Satisfy parser.  Every parser returns either
+Yaparc::Result::OK or Yaparc::Result::Fail as their result of parsing.  An
+instance of Yaparc::Result::Fail denotes faiilure, and instance of
+Yaparc::Result::OK indicates success.
 
-All parsers has 'parse' method, each of which takes input string as its arguments except SatisfyParser. Every parser returns either Result::OK or Result::Fail as their result of parsing. An instance of Result::Fail denotes faiilure, and instance of Result::OK indicates success.
+=== Primitive Parsers
 
-== Primitive Parsers
+* Yaparc::Succeed
+* Yaparc::Fail
+* Yaparc::Item
+* Yaparc::Satisfy
 
-* Succeed
-* Fail
-* Item
-* Satisfy
+==== Succeed class
 
-=== Succeed class
-
-The parser Succeed always succeeds with the result value, without consuming any of the input string.
-In the following example, Succeed#parse takes an input string "blah, blah, blah" and returns the singleton array [[1, "blah, blah, blah"]].
+The parser Yaparc::Succeed always succeeds with the result value, without
+consuming any of the input string.  In the following example,
+Yaparc::Succeed#parse takes an input string <tt>blah, blah, blah</tt> and
+returns the singleton array <tt>[[1, "blah, blah, blah"]]</tt>.
 
     parser = Yaparc::Succeed.new(1)
     parser.parse("blah, blah, blah")
-    => #<Yaparc::Result::OK:0xb7aaaf5c @input="blah, blah, blah", @value=1>
+    #=> #<Yaparc::Result::OK:0xb7aaaf5c @input="blah, blah, blah", @value=1>
 
-=== Fail class
+==== Fail class
 
-The parser Fail always fails, regardless of the contents of the input string.
+The parser Yaparc::Fail always fails, regardless of the contents of the input
+string.
 
     parser = Yaparc::Fail.new
     parser.parse("abc")
-    => #<Yaparc::Result::Fail:0xb7aa56b0 @value=nil>
+    #=> #<Yaparc::Result::Fail:0xb7aa56b0 @value=nil>
 
-=== Item class
+==== Item class
 
-The parser Item fails if the input string is empty, and succeeds with the first character as the result value otherwise.
+The parser Yaparc::Item fails if the input string is empty, and succeeds with
+the first character as the result value otherwise.
 
     parser = Yaparc::Item.new
     parser.parse("abc")
-    => #<Yaparc::Result::OK:0xb7a9fdb4 @input="bc", @value="a">
+    #=> #<Yaparc::Result::OK:0xb7a9fdb4 @input="bc", @value="a">
 
-=== Satisfy class
+==== Satisfy class
 
-The parser Satisfy recognizes a single input via predicate which determines if an arbitrary input is suitable for the predicate.
+The parser Yaparc::Satisfy recognizes a single input via predicate which
+determines if an arbitrary input is suitable for the predicate.
 
     is_integer = lambda do |i|
       begin
@@ -63,80 +74,71 @@ The parser Satisfy recognizes a single input via predicate which determines if a
     end
     parser = Yaparc::Satisfy.new(is_integer)
     parser.parse("123")
-    => #<Yaparc::Result::OK:0xb7a8f284 @input="23", @value="1">
+    #=> #<Yaparc::Result::OK:0xb7a8f284 @input="23", @value="1">
 
+=== Combining Parsers
 
-== Combining Parsers
-
-* Alt
-* Seq
-* Many
-* ManyOne
-
-
+* Yaparc::Alt
+* Yaparc::Seq
+* Yaparc::Many
+* Yaparc::ManyOne
   
-=== Sequencing parser
+==== Sequencing parser
 
-The Seq corresponds to sequencing in BNF. The following parser recognizes anything that Symbol.new('+') or Natural.new would if placed in succession.
+The Yaparc::Seq corresponds to sequencing in BNF.  The following parser
+recognizes anything that <tt>Symbol.new('+')</tt> or <tt>Natural.new</tt>
+would if placed in succession.
 
   parser = Seq.new(Symbol.new('+'), Natural.new)
   parser.parse("+321")
-  => #<Yaparc::Result::OK:0xb7a81ae4 @input="", @value=321>
+  #=> #<Yaparc::Result::OK:0xb7a81ae4 @input="", @value=321>
 
-if a block given to Seq, it analyses input string to construct its logical structure.
+If a block given to Yaparc::Seq, it analyses input string to construct its
+logical structure.
 
-  parser = Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do | plus, nat|
+  parser = Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do |plus, nat|
     nat
   end
   parser.parse("+1234")
-  => #<Yaparc::Result::OK:0xb7a70a00 @input="", @value=1234>
+  #=> #<Yaparc::Result::OK:0xb7a70a00 @input="", @value=1234>
 
 It produces a parse tree which expounds the semantic structure of the program.
 
-=== Alternation parser
+==== Alternation parser
 
-The parser Alt class is an alternation parser, which returns the result of the first parser to succeed, and failure if neither does.
-
+The parser Yaparc::Alt class is an alternation parser, which returns the
+result of the first parser to succeed, and failure if neither does.
 
   parser = Yaparc::Alt.new(
-                          Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do | _, nat|
+                          Yaparc::Seq.new(Yaparc::Symbol.new('+'), Yaparc::Natural.new) do |_, nat|
                             nat
                           end,
                           Yaparc::Natural.new
                          )
   parser.parse("1234")
-  => #<Yaparc::Result::OK:0xb7a5a610 @input="", @value=1234>
+  #=> #<Yaparc::Result::OK:0xb7a5a610 @input="", @value=1234>
   parser.parse("-1234")
-  => #<Yaparc::Result::Fail:0xb7a57ba4 @value=nil>
+  #=> #<Yaparc::Result::Fail:0xb7a57ba4 @value=nil>
 
+==== Many
 
-=== Many
-
-In Many, zero or more applications of parser are admissible.
+In Yaparc::Many, zero or more applications of parser are admissible.
 
     parser = Yaparc::Many.new(Yaparc::Satisfy.new(lambda {|i| i > '0' and i < '9'}))
     parser.parse("123abc")
-    => #<Yaparc::Result::OK:0xb7a49dc4 @input="abc", @value="123">
+    #=> #<Yaparc::Result::OK:0xb7a49dc4 @input="abc", @value="123">
 
-=== ManyOne
+==== ManyOne
 
-The ManyOne requires at least one successfull application of parser.
+The Yaparc::ManyOne requires at least one successfull application of parser.
 
+=== Tokenized parser
 
-== Tokenized parser
+Yaparc::Identifier :: Parser for identifier
+Yaparc::Natural    :: Parser for natural number
+Yaparc::Symbol     :: Parser for symbol
 
-* Identifier
-
-  Parser for identifier
-
-* Natural
-
-  Parser for natural number
-
-* Symbol
-
-
-== Regex parser
+=== Regex parser
 
     parser = Regex.new(/\A[0-9]+/)
     result = parser.parse("1234ab")
@@ -148,10 +150,10 @@ The ManyOne requires at least one successfull application of parser.
     result = parser.parse("1234:ab")
     assert_equal ["ab", "1234"],  result.value
 
+=== Define your own parser
 
-== Define your own parser
-
-In order to construct parsers, you make parser class to be inherited from Yaparc::AbstractParser class.
+In order to construct parsers, you make parser class to be inherited from
+Yaparc::AbstractParser class.
 
   class Identifier < Yaparc::AbstractParser
     def initialize
@@ -161,36 +163,54 @@ In order to construct parsers, you make parser class to be inherited from Yaparc
     end
   end
 
-If you want to nest the same parser class in the parser definition, you have to choose this way.
-In the following example, note that Expr class is instantiated inside Expr#initialize method.
+If you want to nest the same parser class in the parser definition, you have
+to choose this way.  In the following example, note that +Expr+ class is
+instantiated inside <tt>Expr#initialize</tt> method.
 
   class Expr < Yaparc::AbstractParser
     def initialize
       @parser = lambda do
         Yaparc::Alt.new(
-                              Yaparc::Seq.new(Term.new,
-                                                    Yaparc::Symbol.new('+'),
-                                                    Expr.new) do |term, _, expr|
-                                ['+', term,expr]
-                              end,
-                              Term.new
-                              )
+                         Yaparc::Seq.new(Term.new,
+                                         Yaparc::Symbol.new('+'),
+                                         Expr.new) do |term, _, expr|
+                           ['+', term, expr]
+                         end,
+                         Term.new
+                       )
       end
     end
+  end
 
-Constructing your parsers, it should be noted that left-recursion leads to non-termination of the parser.
+Constructing your parsers, it should be noted that left-recursion leads to
+non-termination of the parser.
 
-== Avoiding left-recursion
+=== Avoiding left-recursion
 
  A ::= A B | C
 
-  is equivalent to
+is equivalent to
 
  A ::= C B*
 
+=== Tokenization
 
-== Tokenization
+When you want to tokenize input stream, use Yaparc::Tokenize class.
 
-When you want to tokenize input stream, use Token class.
+== About this project
 
+RubyGems.org         :: https://rubygems.org/gems/yaparc
+RubyForge (archived) :: https://web.archive.org/web/20140515235842/http://rubyforge.org/projects/yaparc/
 
+== Development
+
+After checking out the repo, run <tt>bin/setup</tt> to install dependencies.
+Then, run <tt>rake test</tt> to run the tests.
+You can also run <tt>bin/console</tt> for an interactive prompt that will allow you to experiment.
+
+To install this gem onto your local machine, run <tt>bundle exec rake install</tt>.
+To release a new version, update the version number in the library file, and then run <tt>bundle exec rake release</tt>, which will create a git tag for the version, push git commits and the created tag, and push the <tt>.gem</tt> file to [rubygems.org](https://rubygems.org).
+
+== Contributing
+
+Bug reports and pull requests are welcome.
