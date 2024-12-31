@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Remove message attribute from `Yaparc::Base`.
+* Rename `Yaparc::Fail` to `Yaparc::FailParser`.
 
 ## 0.3.0 - 2024-12-31
 

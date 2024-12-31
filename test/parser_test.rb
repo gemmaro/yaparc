@@ -43,7 +43,7 @@ class YaparcTest < Test::Unit::TestCase
   end
 
   def test_fail_parse
-    parser = ::Yaparc::Fail.new
+    parser = ::Yaparc::FailParser.new
     result = parser.parse("abc")
     assert_instance_of Result::Fail,  result
   end
@@ -140,12 +140,12 @@ class YaparcTest < Test::Unit::TestCase
     assert_equal "a",  result.value
     assert_equal "bc",  result.input
 
-    parser = Alt.new(Fail.new, Succeed.new('d'))
+    parser = Alt.new(FailParser.new, Succeed.new('d'))
     result = parser.parse("abc")
     assert_equal "d",  result.value
     assert_equal "abc",  result.input
 
-    parser = Alt.new(Fail.new, Fail.new)
+    parser = Alt.new(FailParser.new, FailParser.new)
     result = parser.parse("abc")
     assert_instance_of Result::Fail,  result
 

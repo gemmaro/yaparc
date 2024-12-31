@@ -26,7 +26,7 @@ Yaparc::Result::OK indicates success.
 === Primitive Parsers
 
 * Yaparc::Succeed
-* Yaparc::Fail
+* Yaparc::FailParser
 * Yaparc::Item
 * Yaparc::Satisfy
 
@@ -41,14 +41,14 @@ returns the singleton array <tt>[[1, "blah, blah, blah"]]</tt>.
     parser.parse("blah, blah, blah")
     #=> #<Yaparc::Result::OK:0xb7aaaf5c @input="blah, blah, blah", @value=1>
 
-==== Fail class
+==== FailParser class
 
-The parser Yaparc::Fail always fails, regardless of the contents of the input
-string.
+The parser Yaparc::FailParser always fails, regardless of the contents of the
+input string.
 
-    parser = Yaparc::Fail.new
+    parser = Yaparc::FailParser.new
     parser.parse("abc")
-    #=> #<Yaparc::Result::Fail:0xb7aa56b0 @value=nil>
+    #=> #<Yaparc::Result::FailParser:0xb7aa56b0 @value=nil>
 
 ==== Item class
 

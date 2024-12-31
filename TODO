@@ -1,5 +1,5 @@
 - [ ] Result::Fail to Fail
-- [ ] Fail to FailParser
+- [X] Fail to FailParser
 
 # Local Variables:
 # mode: org

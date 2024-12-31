@@ -52,7 +52,7 @@ module Yaparc
     end
   end
 
-  class Fail
+  class FailParser
     include Parsable
     def initialize
       @parser = lambda do |input|
@@ -106,7 +106,7 @@ module Yaparc
         if result.instance_of?(Result::OK) and predicate.call(result.value)
           Succeed.new(result.value, result.input)
         else
-          Fail.new
+          FailParser.new
         end
       end
     end
@@ -115,7 +115,7 @@ module Yaparc
       case parser = @parser.call(input)
       when Succeed
         parser.parse(parser.remaining)
-      when Fail
+      when FailParser
         parser.parse(input)
       else
         raise
@@ -232,7 +232,7 @@ module Yaparc
         if result.instance_of?(Result::OK)
           Succeed.new(yield(result.value)).parse(result.input)
         else
-          Fail.new.parse(input)
+          FailParser.new.parse(input)
         end
       end
     end # of initialize
@@ -471,7 +471,7 @@ module Yaparc
 
           case result = Yaparc::Alt.new(*keyword_parsers).parse(input)
           when Yaparc::Result::OK
-            Yaparc::Fail.new
+            Yaparc::FailParser.new
           else # Result::Fail or Result::Error
             tokenizer
           end

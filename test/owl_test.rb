@@ -752,7 +752,7 @@ module OWLParser
         keyword_parsers = OWLParser::KEYWORDS.map {|keyword| Yaparc::Literal.new(keyword)}
         case result = Yaparc::Alt.new(*keyword_parsers).parse(input)
         when Yaparc::Result::OK
-          return Yaparc::Fail.new
+          return Yaparc::FailParser.new
         end
 
         parser = Yaparc::Tokenize.new(Yaparc::Regex.new(/\A(([^:\/?# ]+):)?(\/\/([^\/?#() ]*))?([^?#() ]*)(\?([^# ]*))?(#(.*))?/), :prefix => Yaparc::Space.new, :postfix => Yaparc::Space.new)
@@ -761,7 +761,7 @@ module OWLParser
           unless result.value.empty?
             Yaparc::Result::OK.new(:value => {:uri_reference => result.value}, :input => result.input)
           else
-            Yaparc::Fail.new
+            Yaparc::FailParser.new
           end
         else
           result
