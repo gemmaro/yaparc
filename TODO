@@ -1,5 +1,6 @@
 - [X] Result::Fail to Fail
 - [X] Fail to FailParser
+- [X] Remove raise
 
 # Local Variables:
 # mode: org

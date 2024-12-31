@@ -79,15 +79,13 @@ module Yaparc
     def initialize(parser, identity = [])
       @parser = lambda do |input|
         case result = parser.parse(input)
-        when Fail
+        in Fail
           OK.new(:value => identity, :input => input)
-#          Succeed.new(identity)
-        when Error
+          #          Succeed.new(identity)
+        in Error
           Error.new(:value => result.value, :input => result.input)
-        when OK
+        in OK
           result
-        else
-          raise
         end
       end
     end
@@ -97,7 +95,6 @@ module Yaparc
     include Parsable
 
     def initialize(predicate)
-      raise unless predicate.instance_of?(Proc)
       @parser = lambda do |input|
         result = Item.new.parse(input)
         if result.instance_of?(OK) and predicate.call(result.value)
@@ -110,12 +107,10 @@ module Yaparc
 
     def parse(input)
       case parser = @parser.call(input)
-      when Succeed
+      in Succeed
         parser.parse(parser.remaining)
-      when FailParser
+      in FailParser
         parser.parse(input)
-      else
-        raise
       end
     end
   end
@@ -156,17 +151,15 @@ module Yaparc
         end
 
         case final_result
-        when Fail
+        in Fail
           Fail.new(:input => final_result.input)
-        when OK
+        in OK
           final_value = if block_given?
                           yield(*args)
                         else
                           args.last
                         end
           OK.new(:value => final_value, :input => final_result.input)
-        else
-          raise
         end
       end
     end # of initialize
@@ -179,46 +172,16 @@ module Yaparc
         final_result = Fail.new(:input => input)
         parsers.each do |parser|
           case result = parser.parse(input)
-          when Fail
+          in Fail
             next
-#           when Error
-#             raise
-#             return Error.new(:value => result.value, :input => result.input)
-          when OK
+          in OK
             break final_result = result
-          else
-            raise
           end
         end
         final_result
       end
-    end # of initialize
+    end
   end
-
-#   class Alt
-#     include Parsable
-#     def initialize(*parsers)
-#       @parser = lambda do |input|
-#         if head = parsers[0]
-#           case result = head.parse(input)
-#           when Fail
-#             if parsers.empty?
-#               result
-#             else
-#               Alt.new(*parsers[1..-1]).parse(input)
-#             end
-#           when OK
-#             result
-#           else
-#             raise
-#           end
-#         else
-#           Fail.new(:input => input)
-#         end
-#       end
-#     end # of initialize
-#   end
-
 
   class Apply
     include Parsable
@@ -275,19 +238,6 @@ module Yaparc
         end
       end
     end
-
-#     def parse_with_parameter(input)
-#       raise "Deprecated!! Use Regex with block"
-#       if match = Regexp.new(@regex).match(input)
-#         if block_given?
-#           yield match.to_a[1..match.to_a.length]
-#         else
-#           OK.new(:value => match, :input => match.post_match)
-#         end
-#       else
-#         Fail.new(:input => input)
-#       end
-#     end
   end
 
   # permits zero or more applications of parser.
@@ -309,30 +259,10 @@ module Yaparc
       @parser = lambda do |input|
         Seq.new(parser, Many.new(parser, identity)) do |head, tail|
           case head
-          when ::String
-            if tail.instance_of?(::String)
-              head + tail
-            else
-              raise "Incompatible type: head => #{head.inspect}, tail => #{tail.inspect}"
-            end
-          when ::Array
-            if tail.instance_of?(Array)
-              head + tail
-            else
-              raise "Incompatible type: head => #{head.inspect}, tail => #{tail.inspect}"
-            end
+          when ::String, ::Array, ::Integer
+            head + tail
           when ::Hash
-            if tail.instance_of?(Hash)
-              head.merge(tail)
-            else
-              raise "Incompatible type: head => #{head.inspect}, tail => #{tail.inspect}"
-            end
-          when ::Integer
-            if tail.kind_of?(Integer)
-              head + tail
-            else
-              raise "Incompatible type: head => #{head.inspect}, tail => #{tail.inspect}"
-            end
+            head.merge(tail)
           else
             if tail.nil?
               head
@@ -517,7 +447,6 @@ module Yaparc
     include Parsable
 
     def initialize(char, case_sensitive = true)
-      raise unless char.length == 1
       if case_sensitive
         equal_char = lambda {|i| i == char}
       else # in case of case-insentive
