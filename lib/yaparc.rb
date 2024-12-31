@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Yaparc
   VERSION = "0.3.0"
 

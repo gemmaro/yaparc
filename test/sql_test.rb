@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 ###  c.f. http://www11.plala.or.jp/sotsuken/db/sql.html
