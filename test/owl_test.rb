@@ -1,3 +1,5 @@
+require "test_helper"
+
 =begin
 ontology ::= 'Ontology(' [ ontologyID ] { directive } ')'
 directive ::= 'Annotation(' ontologyPropertyID ontologyID ')'
@@ -997,6 +999,7 @@ class OwlTest < Test::Unit::TestCase
     ontology_id = OWLParser::OntologyID.new
     assert_instance_of Result::OK, ontology_id.parse("http://localhost.localdomain:3000")
     result = ontology_id.parse("ex:individual type")
+    assert_instance_of Result::OK, result
   end
 
   def test_class_id

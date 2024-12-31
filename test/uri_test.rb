@@ -1,5 +1,4 @@
-require 'lib/yaparc.rb'
-require 'test/unit'
+require 'test_helper'
 
 module URIParser
 
@@ -453,9 +452,10 @@ class UriTest < Test::Unit::TestCase
 
   def test_absolute_uri   # = scheme ":" ( hier_part | opaque_part )
     absolute_uri = URIParser::AbsoluteURI.new
-#     assert_instance_of Result::OK, URIParser::HierPart.new.parse("//localhost.localdomain:3000/pchar;param")
+    assert_instance_of Result::OK, URIParser::HierPart.new.parse("//localhost.localdomain:3000/pchar;param")
 
-#     assert_instance_of Result::OK, absolute_uri.parse("http://localhost.localdomain:3000/pchar;param")
+    omit
+    assert_instance_of Result::OK, absolute_uri.parse("http://localhost.localdomain:3000/pchar;param")
 
 #     assert_instance_of Result::OK, absolute_uri.parse("ftp://localhost.localdomain/pchar;param/pchar;param")
 #     assert_instance_of Result::OK, absolute_uri.parse("http://localhost.localdomain:3000/pchar;param?query")
@@ -480,14 +480,17 @@ class UriTest < Test::Unit::TestCase
 
   def test_path
     path = URIParser::Path.new
+    assert_instance_of URIParser::Path, path
   end
 
   def test_opaque_part
     opaque_part = URIParser::OpaquePart.new
+    assert_instance_of URIParser::OpaquePart, opaque_part
   end
 
   def test_uric_no_slash
     uric_no_slash = URIParser::UricNoSlash.new
+    assert_instance_of URIParser::UricNoSlash, uric_no_slash
   end
 
 
@@ -567,6 +570,7 @@ class UriTest < Test::Unit::TestCase
 
   def test_user_info
     user_info = URIParser::UserInfo.new
+    assert_instance_of URIParser::UserInfo, user_info
   end
 
   def test_host_port

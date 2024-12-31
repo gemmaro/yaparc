@@ -1,6 +1,4 @@
-require 'lib/yaparc.rb'
-require 'test/unit'
-require 'pp'
+require 'test_helper'
 
 class YaparcTest < Test::Unit::TestCase
   include ::Yaparc

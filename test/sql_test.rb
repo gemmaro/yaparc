@@ -1,5 +1,4 @@
-require 'lib/yaparc.rb'
-require 'test/unit'
+require 'test_helper'
 
 ###  c.f. http://www11.plala.or.jp/sotsuken/db/sql.html
 ###

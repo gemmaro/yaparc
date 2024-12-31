@@ -1,6 +1,4 @@
-require 'lib/yaparc.rb'
-require 'test/unit'
-
+require 'test_helper'
 
 =begin Metric Interchange Syntax
 
