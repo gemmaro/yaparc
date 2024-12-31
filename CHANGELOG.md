@@ -4,6 +4,7 @@
 
 * Remove message attribute from `Yaparc::Base`.
 * Rename `Yaparc::Fail` to `Yaparc::FailParser`.
+* Move `OK`, `Fail`, `Error` outside of `Result` and removed `Result` module.
 
 ## 0.3.0 - 2024-12-31
 

@@ -3,8 +3,8 @@
 module Yaparc
   VERSION = "0.3.0"
 
-  module Result
-    class Base
+  begin
+    base = Class.new do
       attr :input, :value
 
       def initialize(input:, value: nil)
@@ -13,9 +13,9 @@ module Yaparc
       end
     end
 
-    OK = Class.new(Base)
-    Fail = Class.new(Base)
-    Error = Class.new(Base)
+    OK = Class.new(base)
+    Fail = Class.new(base)
+    Error = Class.new(base)
   end
 
   module Parsable
@@ -46,7 +46,7 @@ module Yaparc
 
     def initialize(value, remaining = nil)
       @parser = lambda do |input|
-        Result::OK.new(:value => value, :input => input)
+        OK.new(:value => value, :input => input)
       end
       @remaining = remaining
     end
@@ -56,7 +56,7 @@ module Yaparc
     include Parsable
     def initialize
       @parser = lambda do |input|
-        Result::Fail.new(:input => input)
+        Fail.new(:input => input)
       end
     end
   end
@@ -68,9 +68,9 @@ module Yaparc
     def initialize
       @parser = lambda do |input|
         if input.nil? or input.empty?
-          Result::Fail.new(:input => input)
+          Fail.new(:input => input)
         else
-          Result::OK.new(:value => input[0..0],:input => input[1..input.length])
+          OK.new(:value => input[0..0],:input => input[1..input.length])
         end
       end
     end
@@ -82,12 +82,12 @@ module Yaparc
     def initialize(parser, identity = [])
       @parser = lambda do |input|
         case result = parser.parse(input)
-        when Result::Fail
-          Result::OK.new(:value => identity, :input => input)
+        when Fail
+          OK.new(:value => identity, :input => input)
 #          Succeed.new(identity)
-        when Result::Error
-          Result::Error.new(:value => result.value, :input => result.input)
-        when Result::OK
+        when Error
+          Error.new(:value => result.value, :input => result.input)
+        when OK
           result
         else
           raise
@@ -103,7 +103,7 @@ module Yaparc
       raise unless predicate.instance_of?(Proc)
       @parser = lambda do |input|
         result = Item.new.parse(input)
-        if result.instance_of?(Result::OK) and predicate.call(result.value)
+        if result.instance_of?(OK) and predicate.call(result.value)
           Succeed.new(result.value, result.input)
         else
           FailParser.new
@@ -131,8 +131,8 @@ module Yaparc
     def initialize(parser, &block)
       @parser = lambda do |input|
         result = parser.parse(input)
-        if result.instance_of?(Result::Fail)
-          Result::Error.new(:value => result.value, :input => result.input)
+        if result.instance_of?(Fail)
+          Error.new(:value => result.value, :input => result.input)
         else
           Succeed.new(result.value)
         end
@@ -147,11 +147,11 @@ module Yaparc
     def initialize(*parsers, &block)
       @parser = lambda do |input|
         args = []
-        initial_result = Result::OK.new(:input => input)
+        initial_result = OK.new(:input => input)
         final_result = parsers.inject(initial_result) do |subsequent, parser|
           result = parser.parse(subsequent.input)
-          if result.instance_of?(Result::Fail)
-            break Result::Fail.new(:input => subsequent.input)
+          if result.instance_of?(Fail)
+            break Fail.new(:input => subsequent.input)
           else
             args << result.value
             result
@@ -159,15 +159,15 @@ module Yaparc
         end
 
         case final_result
-        when Result::Fail
-          Result::Fail.new(:input => final_result.input)
-        when Result::OK
+        when Fail
+          Fail.new(:input => final_result.input)
+        when OK
           final_value = if block_given?
                           yield(*args)
                         else
                           args.last
                         end
-          Result::OK.new(:value => final_value, :input => final_result.input)
+          OK.new(:value => final_value, :input => final_result.input)
         else
           raise
         end
@@ -179,15 +179,15 @@ module Yaparc
     include Parsable
     def initialize(*parsers)
       @parser = lambda do |input|
-        final_result = Result::Fail.new(:input => input)
+        final_result = Fail.new(:input => input)
         parsers.each do |parser|
           case result = parser.parse(input)
-          when Result::Fail
+          when Fail
             next
-#           when Result::Error
+#           when Error
 #             raise
-#             return Result::Error.new(:value => result.value, :input => result.input)
-          when Result::OK
+#             return Error.new(:value => result.value, :input => result.input)
+          when OK
             break final_result = result
           else
             raise
@@ -204,19 +204,19 @@ module Yaparc
 #       @parser = lambda do |input|
 #         if head = parsers[0]
 #           case result = head.parse(input)
-#           when Result::Fail
+#           when Fail
 #             if parsers.empty?
 #               result
 #             else
 #               Alt.new(*parsers[1..-1]).parse(input)
 #             end
-#           when Result::OK
+#           when OK
 #             result
 #           else
 #             raise
 #           end
 #         else
-#           Result::Fail.new(:input => input)
+#           Fail.new(:input => input)
 #         end
 #       end
 #     end # of initialize
@@ -229,7 +229,7 @@ module Yaparc
     def initialize(parser, &block)
       @parser = lambda do |input|
         result = parser.parse(input)
-        if result.instance_of?(Result::OK)
+        if result.instance_of?(OK)
           Succeed.new(yield(result.value)).parse(result.input)
         else
           FailParser.new.parse(input)
@@ -245,7 +245,7 @@ module Yaparc
     def initialize(string, case_sensitive = true)
       @parser = lambda do |input|
         result = Item.new.parse(string)
-        if result.instance_of?(Result::OK)
+        if result.instance_of?(OK)
           Seq.new(
                   Char.new(result.value, case_sensitive),
                   Yaparc::String.new(result.input, case_sensitive),
@@ -271,10 +271,10 @@ module Yaparc
           if block_given?
             Succeed.new(yield(*match.to_a[1..match.to_a.length])).parse(match.post_match)
           else
-            Result::OK.new(:value => match[0], :input => match.post_match)
+            OK.new(:value => match[0], :input => match.post_match)
           end
         else
-          Result::Fail.new(:input => input)
+          Fail.new(:input => input)
         end
       end
     end
@@ -285,10 +285,10 @@ module Yaparc
 #         if block_given?
 #           yield match.to_a[1..match.to_a.length]
 #         else
-#           Result::OK.new(:value => match, :input => match.post_match)
+#           OK.new(:value => match, :input => match.post_match)
 #         end
 #       else
-#         Result::Fail.new(:input => input)
+#         Fail.new(:input => input)
 #       end
 #     end
   end
@@ -470,9 +470,9 @@ module Yaparc
           keyword_parsers = exclude.map {|keyword| Yaparc::String.new(keyword)}
 
           case result = Yaparc::Alt.new(*keyword_parsers).parse(input)
-          when Yaparc::Result::OK
+          when Yaparc::OK
             Yaparc::FailParser.new
-          else # Result::Fail or Result::Error
+          else # Fail or Error
             tokenizer
           end
         end
@@ -506,9 +506,9 @@ module Yaparc
 #           keyword_parsers = keywords.map {|keyword| Yaparc::String.new(keyword)}
 
 #           case result = Yaparc::Alt.new(*keyword_parsers).parse(input)
-#           when Yaparc::Result::OK
+#           when Yaparc::OK
 #             Yaparc::Fail.new
-#           else # Result::Fail or Result::Error
+#           else # Fail or Error
 #             Tokenize.new(@@identifier_regex)
 #           end
 #         end

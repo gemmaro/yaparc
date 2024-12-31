@@ -90,7 +90,7 @@ class YaparcCalcTest < Test::Unit::TestCase
 
   def test_expr
     result = @expr.parse("1 + 2 ")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal ["+", 1, 2],  result.value
     assert_equal "",  result.input
     assert_equal 3, @expr.evaluate("1 + 2 ")

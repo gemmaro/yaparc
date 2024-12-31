@@ -1,4 +1,4 @@
-- [ ] Result::Fail to Fail
+- [X] Result::Fail to Fail
 - [X] Fail to FailParser
 
 # Local Variables:

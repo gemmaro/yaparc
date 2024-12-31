@@ -15,7 +15,7 @@ class YaparcTest < Test::Unit::TestCase
       {:head => head,:rest => rest }
     end
     result = parser.parse("root/user")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal Hash[:head=>"root", :rest=>"user"],  result.value
   end
   
@@ -25,9 +25,9 @@ class YaparcTest < Test::Unit::TestCase
                              Yaparc::Alt.new(Natural.new,
                                              Identifier.new))
     result = parser.parse("scheme:124")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse("scheme:identifier")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
   end
 
   def test_succeed_parse
@@ -45,13 +45,13 @@ class YaparcTest < Test::Unit::TestCase
   def test_fail_parse
     parser = ::Yaparc::FailParser.new
     result = parser.parse("abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
   end
 
   def test_item_parse
     parser = ::Yaparc::Item.new
     result = parser.parse("")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     result = parser.parse("abc")
     assert_equal "a",  result.value
     assert_equal "bc",  result.input
@@ -73,7 +73,7 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Satisfy.new(is_integer)
     result = parser.parse("abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
 
     is_char = lambda do |i|
       begin
@@ -147,17 +147,17 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Alt.new(FailParser.new, FailParser.new)
     result = parser.parse("abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
 
     parser = Alt.new(Natural.new, Ident.new)
     result = parser.parse("abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse("124")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse("ABC124")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     result = parser.parse("abc124")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal 'abc124',  result.value
   end
 
@@ -185,15 +185,15 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Char.new("a")
     result = parser.parse("123")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
 
     parser = Char.new("a", false)
     result = parser.parse("a")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse("A")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse("!")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
   end
 
   def test_string_parse
@@ -204,13 +204,13 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Yaparc::String.new("abc")
     result = parser.parse("ab1234")
-    assert_instance_of  Result::Fail,  result
+    assert_instance_of  Fail,  result
 
     parser = Yaparc::String.new("abc", false)
     result = parser.parse("abc")
-    assert_instance_of  Result::OK,  result
+    assert_instance_of  OK,  result
     result = parser.parse("aBc")
-    assert_instance_of  Result::OK,  result
+    assert_instance_of  OK,  result
   end
 
   def test_regex_parse
@@ -272,7 +272,7 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Many.new(Digit.new,0)
     result = parser.parse("abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
   end
 
   def test_many_one_parse
@@ -283,12 +283,12 @@ class YaparcTest < Test::Unit::TestCase
     assert_equal "abc",  result.input
 
     result = parser.parse("abcdef")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     assert_equal "abcdef",  result.input
 
     parser = ManyOne.new(Char.new('a'),'')
     result = parser.parse("123abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
   end
 
   def test_ident
@@ -324,28 +324,28 @@ class YaparcTest < Test::Unit::TestCase
   def test_space
     parser = Space.new
     result = parser.parse("    abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc",  result.input
   end
 
   def test_whitespace
     parser = WhiteSpace.new
     result = parser.parse(" \n   abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc",  result.input
     snip =<<-SNIP
         
        abc
     SNIP
     result = parser.parse(snip)
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc\n",  result.input
   end
 
 #   def test_token
 #     parser = Token.new
 #     result = parser.parse(" \n   abc")
-#     assert_instance_of Result::OK,  result
+#     assert_instance_of OK,  result
 #     assert_equal "abc",  result.input
 #   end
 
@@ -356,12 +356,12 @@ class YaparcTest < Test::Unit::TestCase
     end
 
     result = parser.parse("    abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc",  result.value
     assert_equal "",  result.input
 
     result = parser.parse(" \n   abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     assert_equal "\n   abc",  result.input
 
     parser = Tokenize.new(Ident.new) do |tokenize|
@@ -370,7 +370,7 @@ class YaparcTest < Test::Unit::TestCase
     end
 
     result = parser.parse(" \n   abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc",  result.value
     assert_equal "",  result.input
   end
@@ -379,13 +379,13 @@ class YaparcTest < Test::Unit::TestCase
     parser = Tokenize.new(Ident.new, :prefix => WhiteSpace.new, :postfix => WhiteSpace.new)
 
     result = parser.parse("    abc")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     assert_equal "abc",  result.value
     assert_equal "",  result.input
 
     parser = Tokenize.new(Ident.new, :prefix => Space.new, :postfix => Space.new)
     result = parser.parse(" \n   abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     assert_equal "\n   abc",  result.input
   end
 
@@ -412,9 +412,9 @@ class YaparcTest < Test::Unit::TestCase
 
     parser = Literal.new('vgh', false)
     result = parser.parse(" vgh ")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = parser.parse(" vgH ")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
   end
 end
 
@@ -438,13 +438,13 @@ class IdentifierParserTest < Test::Unit::TestCase
     assert_equal "abc",  result.value
     assert_equal "",  result.input
     result = @parser.parse("    _abc ")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
     result = @parser.parse("    0_abc ")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     result = @parser.parse("    _00abc ")
-    assert_instance_of Result::OK,  result
+    assert_instance_of OK,  result
 #     result = @untokenized_parser.parse(" \n   abc ")
-#     assert_instance_of Result::OK,  result
+#     assert_instance_of OK,  result
 #     assert_equal "abc",  result.value
 #     assert_equal "",  result.input
   end
@@ -452,7 +452,7 @@ class IdentifierParserTest < Test::Unit::TestCase
   def test_parse_with_keyword
     parser_with_keyword = Identifier.new(:exclude => ["abc","efg"])
     result = parser_with_keyword.parse("abc")
-    assert_instance_of Result::Fail,  result
+    assert_instance_of Fail,  result
     result = parser_with_keyword.parse(" xyz")
     assert_equal "xyz",  result.value
     assert_equal "",  result.input
