@@ -1,51 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-
-# <expression> ::= <identifier>
-#              ::= "(" lambda (<identifier> <expression> ")"
-#              ::= "(" <expression> <expression> ")"
-
-module LambdaParser
-  class Identifier
-    include Yaparc::Parsable
-    RESERVED = %w[lambda]
-
-    def initialize
-      @parser = lambda do |_input|
-        Yaparc::Identifier.new(exclude: RESERVED)
-      end
-    end
-  end
-
-  # KEYWORDS = %w{lambda}
-  # <expression> ::= <identifier>
-  class Expression
-    include Yaparc::Parsable
-    OPEN_PAREN = Yaparc::String.new('(')
-    CLOSE_PAREN = Yaparc::String.new(')')
-
-    def initialize
-      @parser = lambda do |_input|
-        Yaparc::Alt.new( # <identifier>
-          Identifier.new,
-          # "(" lambda "(" <identifier> ")" <expression> ")"
-          Yaparc::Seq.new(OPEN_PAREN,
-                          Yaparc::String.new('lambda'),
-                          Yaparc::Tokenize.new(OPEN_PAREN),
-                          Identifier.new,
-                          CLOSE_PAREN,
-                          Expression.new),
-          # "(" <expression> <expression> ")"
-          Yaparc::Seq.new(OPEN_PAREN,
-                          Expression.new,
-                          Expression.new,
-                          CLOSE_PAREN)
-        )
-      end
-    end
-  end
-end # of LambdaParser
+require_relative "lambda_parser"
 
 class LambdaIdentifierParserTest < Test::Unit::TestCase
   include ::Yaparc

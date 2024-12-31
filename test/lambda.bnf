@@ -1,0 +1,5 @@
+<expression> ::= <identifier>
+             ::= "(" lambda (<identifier> <expression> ")"
+             ::= "(" <expression> <expression> ")"
+
+<expression> ::= <identifier>
