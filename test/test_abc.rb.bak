@@ -1,8 +1,8 @@
-
 require 'lib/yaparc.rb'
 require 'test/unit'
 
 ###  c.f. http://www.norbeck.nu/abc/bnf/abc20bnf.htm###
+# http://web.archive.org/web/20120814155205/http://www.norbeck.nu:80/abc/bnf/abc20bnf.htm
 
 module ABC
 
