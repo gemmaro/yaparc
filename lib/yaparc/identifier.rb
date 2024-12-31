@@ -1,4 +1,4 @@
-require_relative "parsable"
+require_relative 'parsable'
 
 module Yaparc
   # Refer to http://www.cs.nott.ac.uk/~gmh/monparsing.pdf, p.23

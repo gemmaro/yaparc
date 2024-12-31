@@ -1,4 +1,4 @@
-require_relative "parsable"
+require_relative 'parsable'
 
 module Yaparc
   # requires at least one successfull application of parser.

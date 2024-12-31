@@ -1,4 +1,4 @@
-require_relative "parsable"
+require_relative 'parsable'
 
 module Yaparc
   # hutton92:_higher_order_funct_parsin,p.19

@@ -1,4 +1,4 @@
-require_relative "parsable"
+require_relative 'parsable'
 
 module Yaparc
   class AbstractParser
