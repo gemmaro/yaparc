@@ -199,6 +199,8 @@ When you want to tokenize input stream, use Yaparc::Tokenize class.
 
 == About this project
 
+Repository           :: https://git.disroot.org/gemmaro/yaparc
+Mirror repository    :: https://github.com/gemmaro/yaparc
 RubyGems.org         :: https://rubygems.org/gems/yaparc
 RubyForge (archived) :: https://web.archive.org/web/20140515235842/http://rubyforge.org/projects/yaparc/
 
