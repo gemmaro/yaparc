@@ -28,7 +28,7 @@ require_relative 'yaparc/white_space'
 require_relative 'yaparc/zero_one'
 
 module Yaparc
-  VERSION = '0.3.0'
+  VERSION = '0.4.0'
 
   begin
     base = Class.new do
